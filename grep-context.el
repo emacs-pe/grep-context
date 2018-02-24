@@ -23,7 +23,7 @@
   :group 'compilation
   :group 'grep)
 
-(defcustom grep-context-format-alist
+(defcustom grep-context-line-format-alist
   (list (cons 'grep-mode "%s-%d-"))
   "Alist that associates major modes with line formatters.
 Each value is a string passed to `format' to format a line of context.
@@ -46,7 +46,8 @@ If an entry is missing for a major mode, separators are not used in that mode."
 
 (defcustom grep-context-default-format "%s:%d:"
   "Default format for context lines.
-Used if `grep-context-format-alist' contains no entry for current major mode."
+Used if `grep-context-line-format-alist' contains no entry for current major
+mode."
   :type '(choice string function)
   :group 'grep-context)
 
@@ -112,7 +113,7 @@ N defaults to 1."
 			   (- next-line 1 next-ctx (+ line (cdr ctx))))
 		      n)))
 
-	  (format (or (cdr (assoc major-mode grep-context-format-alist))
+	  (format (or (cdr (assoc major-mode grep-context-line-format-alist))
 		      grep-context-default-format))
 	  (separator (cdr (assoc major-mode grep-context-separator-alist)))
 	  (buffer (current-buffer))
@@ -128,19 +129,17 @@ N defaults to 1."
     (if (< n 0)
 	(progn
 	  (let ((n n))
-	    (while (and (< n 0) (> (car ctx) 0))
-	      (save-excursion
-		(forward-line (- (car ctx)))
+	    (save-excursion
+	      (forward-line (- (car ctx)))
+	      (while (and (<= (cl-incf n) 0) (> (car ctx) 0))
 		(kill-whole-line)
-		(cl-decf (car ctx))
-		(cl-incf n))))
+		(cl-decf (car ctx)))))
 	  (let ((n n))
-	    (while (and (< n 0) (> (cdr ctx) 0))
-	      (save-excursion
-		(forward-line (cdr ctx))
-		(kill-whole-line)
-		(cl-decf (cdr ctx))
-		(cl-incf n)))))
+	    (save-excursion
+	      (forward-line (cdr ctx))
+	      (while (and (<= (cl-incf n) 0) (> (cdr ctx) 0))
+		(kill-whole-line -1)
+		(cl-decf (cdr ctx))))))
 
       ;; Prepare a buffer with file contents.
       ;; It's cached so next calls to this function will be faster.
@@ -155,13 +154,14 @@ N defaults to 1."
 
       (with-current-buffer (cdr grep-context--temp-file-buffer)
 	(goto-char (point-min))
-	(forward-line (1- line))
+	(unless (= (forward-line (1- line)) 0)
+	  (error "Line %s is out of bounds for this file" line))
 
 	;; Insert context lines before
 	(save-excursion
 	  (forward-line (- (car ctx)))
 
-	  (while (and (> avail-before 0) (= (forward-line -1) 0))
+	  (while (and (>= (cl-decf avail-before) 0) (= (forward-line -1) 0))
 	    (let ((string (buffer-substring (point-at-bol) (point-at-eol))))
 	      (with-current-buffer buffer
 		(forward-line (- (car ctx)))
@@ -170,14 +170,13 @@ N defaults to 1."
 		(insert (grep-context--format-line
 			 format file (- line 1 (car ctx)) string))
 		(cl-incf (car ctx))
-		(forward-line (car ctx)))
-	      (cl-decf avail-before))))
+		(forward-line (car ctx))))))
 
 	;; Insert context lines after
 	(save-excursion
 	  (forward-line (cdr ctx))
 
-	  (while (and (> avail-after 0) (= (forward-line 1) 0))
+	  (while (and (>= (cl-decf avail-after) 0) (= (forward-line 1) 0))
 	    (let ((string (buffer-substring (point-at-bol) (point-at-eol))))
 	      (with-current-buffer buffer
 		(save-excursion
@@ -186,8 +185,7 @@ N defaults to 1."
 		  (insert (grep-context--format-line
 			   format file (+ line 1 (cdr ctx)) string))
 		  (open-line 1)
-		  (cl-incf (cdr ctx))))
-	      (cl-decf avail-after))))))
+		  (cl-incf (cdr ctx)))))))))
 
     ;; Insert separator before and after this match
     (when separator
