@@ -28,14 +28,17 @@
   "Alist that associates major modes with line formatters.
 Each value is a string passed to `format' to format a line of context.
 It should contain two %-sequences, for the file and a line number in that file,
-e.g. \"%s:%d:\"."
-  :type '(alist :key-type (symbol :tag "Major mode") :value-type string)
+e.g. \"%s:%d:\".
+Value can also be a function callable with a filename and a line number
+and should return a formatted prefix string."
+  :type '(alist :key-type (symbol :tag "Major mode")
+		:value-type (choice string function))
   :group 'grep-context)
 
 (defcustom grep-context-default-format "%s:%d:"
   "Default format for context lines.
 Used if `grep-context-format-alist' contains no entry for current major mode."
-  :type 'string
+  :type '(choice string function)
   :group 'grep-context)
 
 (defvar grep-context--temp-file-buffer nil
@@ -66,7 +69,9 @@ Return value is a cell (context-before . context-after) that can be modified."
 	  cell))))
 
 (defun grep-context--format-line (format file line-number line)
-  (concat (format format file line-number) line))
+  (if (stringp format)
+      (concat (format format file line-number) line)
+    (concat (funcall format file line-number) line)))
 
 (defun grep-context-more-around-point (&optional n)
   "Increase context around point by N.
