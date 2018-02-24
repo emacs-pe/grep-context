@@ -35,6 +35,15 @@ and should return a formatted prefix string."
 		:value-type (choice string function))
   :group 'grep-context)
 
+(defcustom grep-context-separator-alist
+  (list (cons 'grep-mode "--"))
+  "Alist that associates major modes with separators.
+Each value is a string that's inserted between non-contiguous regions.
+If an entry is missing for a major mode, separators are not used in that mode."
+  :type '(alist :key-type (symbol :tag "Major mode")
+		:value-type (choice string (const :tag "No separator" nil)))
+  :group 'grep-context)
+
 (defcustom grep-context-default-format "%s:%d:"
   "Default format for context lines.
 Used if `grep-context-format-alist' contains no entry for current major mode."
@@ -105,10 +114,11 @@ N defaults to 1."
 
 	  (format (or (cdr (assoc major-mode grep-context-format-alist))
 		      grep-context-default-format))
+	  (separator (cdr (assoc major-mode grep-context-separator-alist)))
 	  (buffer (current-buffer))
 	  (inhibit-read-only t))
 
-    ;; Remove "--" separator before and after this match
+    ;; Remove separator before and after this match
     (dolist (line-outside (list (1+ (cdr ctx)) (- (1+ (car ctx)))))
       (save-excursion
 	(forward-line line-outside)
@@ -179,23 +189,24 @@ N defaults to 1."
 		  (cl-incf (cdr ctx))))
 	      (cl-decf avail-after))))))
 
-    ;; Insert "--" separator before and after this match
-    (unless (or (and (equal file prev-file) (< prev-line line)
-		     (= (+ prev-line prev-ctx (car ctx) 1) line))
-		(and (= (car ctx) 0) (or (null prev-ctx) (= prev-ctx 0))))
-      (forward-line (- (car ctx)))
-      (beginning-of-line)
-      (open-line 1)
-      (insert (propertize "--" 'grep-context-separator t))
-      (forward-line (1+ (car ctx))))
-    (unless (or (and (equal file next-file) (< line next-line)
-		     (= (+ line (cdr ctx) next-ctx 1) next-line))
-		(and (= (cdr ctx) 0) (or (null next-ctx) (= next-ctx 0))))
-      (save-excursion
-	(forward-line (1+ (cdr ctx)))
+    ;; Insert separator before and after this match
+    (when separator
+      (unless (or (and (equal file prev-file) (< prev-line line)
+		       (= (+ prev-line prev-ctx (car ctx) 1) line))
+		  (and (= (car ctx) 0) (or (null prev-ctx) (= prev-ctx 0))))
+	(forward-line (- (car ctx)))
 	(beginning-of-line)
 	(open-line 1)
-	(insert (propertize "--" 'grep-context-separator t))))))
+	(insert (propertize separator 'grep-context-separator t))
+	(forward-line (1+ (car ctx))))
+      (unless (or (and (equal file next-file) (< line next-line)
+		       (= (+ line (cdr ctx) next-ctx 1) next-line))
+		  (and (= (cdr ctx) 0) (or (null next-ctx) (= next-ctx 0))))
+	(save-excursion
+	  (forward-line (1+ (cdr ctx)))
+	  (beginning-of-line)
+	  (open-line 1)
+	  (insert (propertize separator 'grep-context-separator t)))))))
 
 (defun grep-context-less-around-point (&optional n)
   "Decrease context around POINT by N.
