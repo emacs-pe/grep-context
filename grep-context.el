@@ -248,7 +248,11 @@ N defaults to 1."
 	  (forward-line (1+ (cdr ctx)))
 	  (beginning-of-line)
 	  (open-line 1)
-	  (insert (propertize separator 'grep-context-separator t)))))))
+	  (insert (propertize separator 'grep-context-separator t)))))
+
+    (save-excursion
+      (forward-line (1+ (cdr ctx)))
+      (compilation--ensure-parse (point-at-bol)))))
 
 ;;;###autoload
 (defun grep-context-less-around-point (&optional n)
