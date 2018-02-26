@@ -1,25 +1,61 @@
-;;; grep-context.el --- TODO: Write short summary.  -*- lexical-binding: t; -*-
+;;; grep-context.el --- Increase context in compilation and grep buffers  -*- lexical-binding: t; -*-
 
 ;;
 ;; Author: Michał Kondraciuk <k.michal@zoho.com>
 ;; URL: https://github.com/mkcms/grep-context
-;; Package-Requires: ((emacs "24.4"))
+;; Package-Requires: ((emacs "24.4") (dash "2.12.0"))
 ;; Version: 0.0.1
-;; Keywords: convenience, tools, search, grep, compile
+;; Keywords: convenience, search, grep, compile
+
+;; Copyright (C) 2017 Michał Kondraciuk
+
+;; This program is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 ;;
-;; Long project summary.
-;; TODO: Write long summary.
+;; This package provides commands to show and hide lines of context around
+;; errors in compilation buffers or around matches in grep buffers
+;; (e.g. M-x grep).  Works with `wgrep'.
+;;
+;; Usage:
+;;   (dolist (map (list compilation-mode-map grep-mode-map))
+;;     (define-key map (kbd "+") #'grep-context-more-around-point)
+;;     (define-key map (kbd "-") #'grep-context-less-around-point))
+;;
+;; After evaluating that you can open a grep buffer and navigate to a match,
+;; then hit "+" to insert a line of context before and after that match.
+;; This is almost the same as running grep with `-A 1 -B 1` flags, except
+;; the context is inserted only around match at point, not everywhere.
+;; It is also much faster than re-running grep with those flags.
+;; Hitting "+" again will insert more context lines and "-" will kill
+;; outermost context lines.
+;;
+;; This package will work with any *compilation* buffer except it needs to
+;; know how to format context lines.  If you want to use it in your mode,
+;; you can add an entry to `grep-context-line-format-alist'.
+;; You can also add an entry to `grep-context-separator-alist' to specify
+;; a separator for non-contiguous regions of context.
+;;
+
+;;; Code:
 
 (require 'compile)
 (require 'dash)
-
 (eval-when-compile
-  (require 'subr-x))
+  (require 'cl-lib))
 
-(defgroup grep-context nil
-  "TODO: Write group documentation."
+(defgroup grep-context nil "More context in compilation buffers."
   :group 'compilation
   :group 'grep)
 
@@ -83,6 +119,7 @@ Return value is a cell (context-before . context-after) that can be modified."
       (concat (format format file line-number) line)
     (concat (funcall format file line-number) line)))
 
+;;;###autoload
 (defun grep-context-more-around-point (&optional n)
   "Increase context around point by N.
 If N is negative, remove -N lines of context.
@@ -206,6 +243,7 @@ N defaults to 1."
 	  (open-line 1)
 	  (insert (propertize separator 'grep-context-separator t)))))))
 
+;;;###autoload
 (defun grep-context-less-around-point (&optional n)
   "Decrease context around POINT by N.
 N defaults to 1."
