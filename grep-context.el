@@ -87,8 +87,14 @@ mode."
   :type '(choice string function)
   :group 'grep-context)
 
-(defvar grep-context--temp-file-buffer nil
+(defvar-local grep-context--temp-file-buffer nil
   "A cell (file . buffer) where BUFFER is a buffer with contents of FILE.")
+
+(defun grep-context--kill-temp-buffer ()
+  "Kill buffer in `grep-context--temp-file-buffer'."
+  (when (buffer-live-p (cdr grep-context--temp-file-buffer))
+    (kill-buffer (cdr grep-context--temp-file-buffer))))
+(add-hook 'kill-buffer-hook #'grep-context--kill-temp-buffer)
 
 (defun grep-context--match-location (&optional n)
   "In current compilation buffer, get location for match at point.
@@ -184,10 +190,11 @@ N defaults to 1."
 		   (equal (car grep-context--temp-file-buffer) file))
 	(when (buffer-live-p (cdr grep-context--temp-file-buffer))
 	  (kill-buffer (cdr grep-context--temp-file-buffer)))
-	(with-current-buffer
-	    (generate-new-buffer (generate-new-buffer-name " *tempbuffer*"))
-	  (insert-file-contents file)
-	  (setq grep-context--temp-file-buffer (cons file (current-buffer)))))
+	(let ((b (generate-new-buffer
+		  (generate-new-buffer-name " *tempbuffer*"))))
+	  (with-current-buffer b
+	    (insert-file-contents file))
+	  (setq grep-context--temp-file-buffer (cons file b))))
 
       (with-current-buffer (cdr grep-context--temp-file-buffer)
 	(goto-char (point-min))
