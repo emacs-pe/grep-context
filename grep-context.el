@@ -102,12 +102,22 @@ mode."
     (kill-buffer (cdr grep-context--temp-file-buffer))))
 (add-hook 'kill-buffer-hook #'grep-context--kill-temp-buffer)
 
+(defun grep-context--next-error (&optional n)
+  "Move point to the next error, ignoring context lines."
+  (or n (setq n 0))
+  (let ((res (compilation-next-error n)))
+    (if (get-text-property (point) 'grep-context-context-line)
+	(if (= n 0)
+	    (error "No match here")
+	  (grep-context--next-error (if (< n 0) -1 1)))
+      res)))
+
 (defun grep-context--match-location (&optional n)
   "In current compilation buffer, get location for match at point.
 If N is non-nil, call `compilation-next-error' with N as argument first.
 Return value is a cell (file . line)."
   (save-excursion
-    (let* ((msg (compilation-next-error (or n 0)))
+    (let* ((msg (grep-context--next-error (or n 0)))
 	   (loc (compilation--message->loc msg))
 	   (fs (compilation--loc->file-struct loc))
 	   (file (car (compilation--file-struct->file-spec fs)))
@@ -119,7 +129,7 @@ Return value is a cell (file . line)."
 If N is non-nil, call `compilation-next-error' with N as argument first.
 Return value is a cell (context-before . context-after) that can be modified."
   (save-excursion
-    (compilation-next-error (or n 0))
+    (grep-context--next-error (or n 0))
     (or (get-text-property (point) 'grep-context)
 	(let ((cell (cons 0 0))
 	      (inhibit-read-only t))
@@ -127,9 +137,10 @@ Return value is a cell (context-before . context-after) that can be modified."
 	  cell))))
 
 (defun grep-context--format-line (format file line-number line)
-  (if (stringp format)
-      (concat (format format file line-number) line)
-    (concat (funcall format file line-number) line)))
+  (propertize (if (stringp format)
+		  (concat (format format file line-number) line)
+		(concat (funcall format file line-number) line))
+	      'grep-context-context-line t))
 
 ;;;###autoload
 (defun grep-context-more-around-point (&optional n)
