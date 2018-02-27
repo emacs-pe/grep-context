@@ -26,7 +26,7 @@
 ;;
 ;; This package provides commands to show and hide lines of context around
 ;; errors in compilation buffers or around matches in grep buffers
-;; (e.g. M-x grep).  Works with `wgrep' and `ag-mode'.
+;; (e.g. M-x grep).  Works with `wgrep', `ag-mode' and `ack-mode'.
 ;;
 ;; Usage:
 ;;   (dolist (map (list compilation-mode-map grep-mode-map))
@@ -61,7 +61,8 @@
 
 (defcustom grep-context-line-format-alist
   (list (cons 'grep-mode "%s-%d-")
-	(cons 'ag-mode #'grep-context-ag-format))
+	(cons 'ag-mode #'grep-context-ag-format)
+	(cons 'ack-mode #'grep-context-ag-format))
   "Alist that associates major modes with line formatters.
 Each value is a string passed to `format' to format a line of context.
 It should contain two %-sequences, for the file and a line number in that file,
