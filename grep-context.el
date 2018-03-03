@@ -29,6 +29,7 @@
 ;; (e.g. M-x grep).  Works with `wgrep', `ag-mode' and `ack-mode'.
 ;;
 ;; Usage:
+;;
 ;;   (progn
 ;;     (dolist (map (list compilation-mode-map grep-mode-map))
 ;;       (define-key map (kbd "+") #'grep-context-more-around-point)
@@ -71,8 +72,8 @@
 	(cons 'ag-mode #'grep-context-ag-format)
 	(cons 'ack-mode #'grep-context-ag-format))
   "Alist that associates major modes with line formatters.
-Each value is a string passed to `format' to format a line of context.
-It should contain two %-sequences, for the file and a line number in that file,
+Each value is a string passed to `format' to format a prefix for a context
+line.  It should contain two %-sequences, for a filename and a line number,
 e.g. \"%s:%d:\".
 Value can also be a function callable with a filename and a line number
 and should return a formatted prefix string."
@@ -83,8 +84,9 @@ and should return a formatted prefix string."
 (defcustom grep-context-separator-alist
   (list (cons 'grep-mode "--"))
   "Alist that associates major modes with separators.
-Each value is a string that's inserted between non-contiguous regions.
-If an entry is missing for a major mode, separators are not used in that mode."
+Each value is a string to be inserted between non-contiguous regions of
+context.  If an entry is missing for a major mode, separators are not
+used in that mode."
   :type '(alist :key-type (symbol :tag "Major mode")
 		:value-type (choice string (const :tag "No separator" nil)))
   :group 'grep-context)
@@ -121,7 +123,7 @@ mode."
 
 (defun grep-context--match-location (&optional n)
   "In current compilation buffer, get location for match at point.
-If N is non-nil, call `compilation-next-error' with N as argument first.
+If N is non-nil, call `grep-context--next-error' with N as argument first.
 Return value is a cell (file . line)."
   (save-excursion
     (let* ((msg (grep-context--next-error (or n 0)))
@@ -133,7 +135,7 @@ Return value is a cell (file . line)."
 
 (defun grep-context--at-match (&optional n)
   "Get number of lines of context around match at point.
-If N is non-nil, call `compilation-next-error' with N as argument first.
+If N is non-nil, call `grep-context--next-error' with N as argument first.
 Return value is a cell (context-before . context-after) that can be modified."
   (save-excursion
     (grep-context--next-error (or n 0))
@@ -151,8 +153,8 @@ Return value is a cell (context-before . context-after) that can be modified."
 
 ;;;###autoload
 (defun grep-context-more-around-point (&optional n)
-  "Increase context around point by N.
-If N is negative, remove -N lines of context.
+  "Insert N context lines around point.
+If N is negative, kill -N lines of context.
 N defaults to 1."
   (interactive "p")
   (unless (compilation-buffer-p (current-buffer))
@@ -280,7 +282,7 @@ N defaults to 1."
 
 ;;;###autoload
 (defun grep-context-less-around-point (&optional n)
-  "Decrease context around POINT by N.
+  "Kill N context lines around point.
 N defaults to 1."
   (interactive "p")
   (grep-context-more-around-point (- (or n 1))))
