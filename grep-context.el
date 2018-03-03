@@ -29,9 +29,16 @@
 ;; (e.g. M-x grep).  Works with `wgrep', `ag-mode' and `ack-mode'.
 ;;
 ;; Usage:
-;;   (dolist (map (list compilation-mode-map grep-mode-map))
-;;     (define-key map (kbd "+") #'grep-context-more-around-point)
-;;     (define-key map (kbd "-") #'grep-context-less-around-point))
+;;   (progn
+;;     (dolist (map (list compilation-mode-map grep-mode-map))
+;;       (define-key map (kbd "+") #'grep-context-more-around-point)
+;;       (define-key map (kbd "-") #'grep-context-less-around-point))
+;;     (with-eval-after-load 'ack
+;;       (define-key ack-mode-map (kbd "+") #'grep-context-more-around-point)
+;;       (define-key ack-mode-map (kbd "-") #'grep-context-less-around-point))
+;;     (with-eval-after-load 'ag
+;;       (define-key ag-mode-map (kbd "+") #'grep-context-more-around-point)
+;;       (define-key ag-mode-map (kbd "-") #'grep-context-less-around-point)))
 ;;
 ;; After evaluating that you can open a grep buffer and navigate to a match,
 ;; then hit "+" to insert a line of context before and after that match.
