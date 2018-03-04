@@ -1,0 +1,70 @@
+* grep-context.el
+
+  Emacs package for more context in compilation/grep buffers.  Works with wgrep, ack, ag.
+
+  [[./demo.gif]]
+
+* Table of contents							:TOC:
+- [[#grep-contextel][grep-context.el]]
+- [[#installation][Installation]]
+  - [[#manual][Manual]]
+- [[#usage][Usage]]
+- [[#extension][Extension]]
+- [[#license][License]]
+
+* Installation
+
+** Manual
+
+   Install [[https://github.com/magnars/dash.el][dash]], then put path to ~grep-context.el~ in your load path:
+
+   #+begin_src emacs-lisp
+   (add-to-list 'load-path "<path-to-dir-containing-grep-context.el>")
+   #+end_src
+
+   To enable keybindings in compilation/grep/ag/ack buffers:
+
+   #+begin_src emacs-lisp
+   (progn
+     (dolist (map (list compilation-mode-map grep-mode-map))
+       (define-key map (kbd "+") #'grep-context-more-around-point)
+       (define-key map (kbd "-") #'grep-context-less-around-point))
+     (with-eval-after-load 'ack
+       (define-key ack-mode-map (kbd "+") #'grep-context-more-around-point)
+       (define-key ack-mode-map (kbd "-") #'grep-context-less-around-point))
+     (with-eval-after-load 'ag
+       (define-key ag-mode-map (kbd "+") #'grep-context-more-around-point)
+       (define-key ag-mode-map (kbd "-") #'grep-context-less-around-point)))
+   #+end_src
+* Usage
+
+  To insert context lines around match at point, call
+  ~grep-context-more-around-point~.  To kill context lines, call
+  ~grep-context-less-around-point~.
+
+  These commands take a prefix argument that says how many lines to
+  insert or kill.
+
+* Extension
+
+  This package will work with any compilation buffer except it needs
+  to know how to format context lines.  If you want to use it in your
+  mode, you can add an entry to ~grep-context-line-format-alist~.  You
+  can also add an entry to ~grep-context-separator-alist~ to specify a
+  separator for non-contiguous regions of context.
+
+* License
+
+  This program is free software: you can redistribute it and/or
+  modify it under the terms of the GNU General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful, but
+  WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program.  If not, see
+  <http://www.gnu.org/licenses/>.
