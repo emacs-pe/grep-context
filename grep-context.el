@@ -278,7 +278,12 @@ N defaults to 1."
 
     (save-excursion
       (forward-line (1+ (cdr ctx)))
-      (compilation--ensure-parse (point-at-bol)))))
+      (compilation--ensure-parse (point-at-bol)))
+
+    ;; Tell wgrep to reparse buffer.
+    ;; TODO: Find a way to tell wgrep to reparse context around this match only
+    (when (boundp 'wgrep-prepared)
+      (setq wgrep-prepared nil))))
 
 ;;;###autoload
 (defun grep-context-less-around-point (&optional n)
