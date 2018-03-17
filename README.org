@@ -2,7 +2,7 @@
 
   [[https://melpa.org/#/grep-context][file:https://melpa.org/packages/grep-context-badge.svg]]
 
-  Emacs package for more context in compilation/grep buffers.  Works with wgrep, ack, ag.
+  Emacs package for more context in compilation/grep buffers.  Works with wgrep, ack, ag, ivy.
 
   [[./demo.gif]]
 
@@ -44,6 +44,7 @@
        (require 'grep-context)
        (dolist (elt '((compile . compilation-mode-map)
 		      (grep . grep-mode-map)
+		      (ivy . ivy-occur-grep-mode-map)
 		      (ag . ag-mode-map)
 		      (ack . ack-mode-map)))
 	 (eval-after-load (car elt)
