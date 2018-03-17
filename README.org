@@ -1,5 +1,7 @@
 * grep-context.el
 
+  [[https://melpa.org/#/grep-context][file:https://melpa.org/packages/grep-context-badge.svg]]
+
   Emacs package for more context in compilation/grep buffers.  Works with wgrep, ack, ag.
 
   [[./demo.gif]]
@@ -7,12 +9,17 @@
 * Table of contents							:TOC:
 - [[#grep-contextel][grep-context.el]]
 - [[#installation][Installation]]
+  - [[#from-melpa][From Melpa]]
   - [[#manual][Manual]]
 - [[#usage][Usage]]
 - [[#extension][Extension]]
 - [[#license][License]]
 
 * Installation
+
+** From Melpa
+
+   Use ~M-x package-install RET grep-context RET~ to install this package.
 
 ** Manual
 
@@ -21,10 +28,18 @@
    #+begin_src emacs-lisp
    (add-to-list 'load-path "<path-to-dir-containing-grep-context.el>")
    #+end_src
+* Usage
 
-   To enable keybindings in compilation/grep/ag/ack buffers:
+  To insert context lines around match at point, call
+  ~grep-context-more-around-point~.  To kill context lines, call
+  ~grep-context-less-around-point~.
 
-   #+begin_src emacs-lisp
+  These commands take a prefix argument that says how many lines to
+  insert or kill.
+
+  To enable keybindings in compilation/grep/ag/ack buffers:
+
+  #+begin_src emacs-lisp
      (progn
        (require 'grep-context)
        (dolist (elt '((compile . compilation-mode-map)
@@ -37,14 +52,7 @@
 	      (define-key ,(cdr elt) (kbd "-") #'grep-context-less-around-point)))))
 
    #+end_src
-* Usage
 
-  To insert context lines around match at point, call
-  ~grep-context-more-around-point~.  To kill context lines, call
-  ~grep-context-less-around-point~.
-
-  These commands take a prefix argument that says how many lines to
-  insert or kill.
 
 * Extension
 
