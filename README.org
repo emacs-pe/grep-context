@@ -2,7 +2,7 @@
 
   [[https://melpa.org/#/grep-context][file:https://melpa.org/packages/grep-context-badge.svg]]
 
-  Emacs package for more context in compilation/grep buffers.  Works with wgrep, ack, ag, ivy.
+  Emacs package for more context in compilation/grep buffers.  Works with wgrep, ack, ag, ivy, ripgrep.
 
   [[./demo.gif]]
 
@@ -37,13 +37,14 @@
   These commands take a prefix argument that says how many lines to
   insert or kill.
 
-  To enable keybindings in compilation/grep/ag/ack buffers:
+  To enable keybindings in compilation/grep/ag/ack/ripgrep buffers:
 
   #+begin_src emacs-lisp
      (progn
        (require 'grep-context)
        (dolist (elt '((compile . compilation-mode-map)
 		      (grep . grep-mode-map)
+		      (ripgrep . ripgrep-search-mode-map)
 		      (ivy . ivy-occur-grep-mode-map)
 		      (ag . ag-mode-map)
 		      (ack . ack-mode-map)))
