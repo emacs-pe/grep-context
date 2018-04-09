@@ -110,7 +110,7 @@ mode."
 (defvar-local grep-context--temp-file-buffer nil
   "A cell (file . buffer) where BUFFER is a buffer with contents of FILE.")
 
-(defun grep-context-ag-format (file line-number)
+(defun grep-context-ag-format (_file line-number)
   "Formatter for context lines in `ag-mode'."
   (concat (number-to-string line-number) "-"))
 
