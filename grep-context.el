@@ -118,7 +118,6 @@ mode."
   "Kill buffer in `grep-context--temp-file-buffer'."
   (when (buffer-live-p (cdr grep-context--temp-file-buffer))
     (kill-buffer (cdr grep-context--temp-file-buffer))))
-(add-hook 'kill-buffer-hook #'grep-context--kill-temp-buffer)
 
 (defun grep-context--next-error (&optional n)
   "Move point to the next error, ignoring context lines."
@@ -229,7 +228,8 @@ N defaults to 1."
 		  (generate-new-buffer-name " *tempbuffer*"))))
 	  (with-current-buffer b
 	    (insert-file-contents file))
-	  (setq grep-context--temp-file-buffer (cons file b))))
+	  (setq grep-context--temp-file-buffer (cons file b)))
+	(add-hook 'kill-buffer-hook #'grep-context--kill-temp-buffer nil t))
 
       (with-current-buffer (cdr grep-context--temp-file-buffer)
 	(goto-char (point-min))
