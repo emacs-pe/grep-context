@@ -37,23 +37,13 @@
   These commands take a prefix argument that says how many lines to
   insert or kill.
 
-  To enable keybindings in compilation/grep/ag/ack/ripgrep buffers:
+  The easiest way to enable keybindings for these commands in all compilation
+  buffers is to use ~grep-context-mode~, where they're bound to ~+~ and ~-~
+  keys:
 
   #+begin_src emacs-lisp
-     (progn
-       (require 'grep-context)
-       (dolist (elt '((compile . compilation-mode-map)
-		      (grep . grep-mode-map)
-		      (ripgrep . ripgrep-search-mode-map)
-		      (ivy . ivy-occur-grep-mode-map)
-		      (ag . ag-mode-map)
-		      (ack . ack-mode-map)))
-	 (eval-after-load (car elt)
-	   `(progn
-	      (define-key ,(cdr elt) (kbd "+") #'grep-context-more-around-point)
-	      (define-key ,(cdr elt) (kbd "-") #'grep-context-less-around-point)))))
-
-   #+end_src
+    (add-hook 'compilation-mode-hook #'grep-context-mode)
+  #+end_src
 
 
 * Extension

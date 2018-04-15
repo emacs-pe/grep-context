@@ -31,20 +31,7 @@
 ;;
 ;; Usage:
 ;;
-;;   (progn
-;;     (require 'grep-context)
-;;     (dolist (elt '((compile . compilation-mode-map)
-;;                    (grep . grep-mode-map)
-;;                    (ivy . ivy-occur-grep-mode-map)
-;;                    (ripgrep . ripgrep-search-mode-map)
-;;                    (ag . ag-mode-map)
-;;                    (ack . ack-mode-map)))
-;;       (eval-after-load (car elt)
-;;         `(progn
-;;             (define-key ,(cdr elt) (kbd "+")
-;;                #'grep-context-more-around-point)
-;;             (define-key ,(cdr elt) (kbd "-")
-;;                #'grep-context-less-around-point)))))
+;;   (add-hook 'compilation-mode-hook #'grep-context-mode)
 ;;
 ;; After evaluating that you can open a grep buffer and navigate to a match,
 ;; then hit "+" to insert a line of context before and after that match.
@@ -105,6 +92,14 @@ used in that mode."
 Used if `grep-context-line-format-alist' contains no entry for current major
 mode."
   :type '(choice string function)
+  :group 'grep-context)
+
+(defcustom grep-context-mode-map
+  (let ((map (make-keymap)))
+    (define-key map "\+" #'grep-context-more-around-point)
+    (define-key map "\-" #'grep-context-less-around-point)
+    map)
+  "Keymap used in `grep-context-mode'."
   :group 'grep-context)
 
 (defvar-local grep-context--temp-file-buffer nil
@@ -300,6 +295,11 @@ N defaults to 1."
 N defaults to 1."
   (interactive "p")
   (grep-context-more-around-point (- (or n 1))))
+
+;;;###autoload
+(define-minor-mode grep-context-mode nil
+  :keymap 'grep-context-mode-map
+  :group 'grep-context)
 
 (provide 'grep-context)
 
