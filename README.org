@@ -1,3 +1,4 @@
+*ARCHIVED*: I won't maintain this package anymore.
 * grep-context.el
 
   [[https://melpa.org/#/grep-context][file:https://melpa.org/packages/grep-context-badge.svg]]
