@@ -59,6 +59,11 @@
   :group 'compilation
   :group 'grep)
 
+(defface grep-context
+  '((t (:inherit shadow)))
+  "Face for showing grep context."
+  :group 'grep-context)
+
 (defcustom grep-context-line-format-alist
   (list (cons 'grep-mode "%s-%d-")
 	(cons 'ivy-occur-grep-mode "%s-%d-")
@@ -144,6 +149,7 @@ Return value is a cell (context-before . context-after) that can be modified."
   (propertize (if (stringp format)
 		  (concat (format format file line-number) line)
 		(concat (funcall format file line-number) line))
+              'face 'grep-context
 	      'grep-context-context-line t))
 
 ;;;###autoload
