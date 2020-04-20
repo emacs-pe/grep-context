@@ -94,14 +94,6 @@ mode."
   :type '(choice string function)
   :group 'grep-context)
 
-(defcustom grep-context-mode-map
-  (let ((map (make-keymap)))
-    (define-key map "\+" #'grep-context-more-around-point)
-    (define-key map "\-" #'grep-context-less-around-point)
-    map)
-  "Keymap used in `grep-context-mode'."
-  :group 'grep-context)
-
 (defvar-local grep-context--temp-file-buffer nil
   "A cell (file . buffer) where BUFFER is a buffer with contents of FILE.")
 
@@ -296,9 +288,15 @@ N defaults to 1."
   (interactive "p")
   (grep-context-more-around-point (- (or n 1))))
 
+(defvar grep-context-mode-map
+  (let ((map (make-keymap)))
+    (define-key map "+" #'grep-context-more-around-point)
+    (define-key map "-" #'grep-context-less-around-point)
+    map)
+  "Keymap used in `grep-context-mode'.")
+
 ;;;###autoload
 (define-minor-mode grep-context-mode nil
-  :keymap 'grep-context-mode-map
   :group 'grep-context)
 
 (provide 'grep-context)
