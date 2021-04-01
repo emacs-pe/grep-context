@@ -3,7 +3,7 @@
 ;;
 ;; Author: Michał Krzywkowski <k.michal@zoho.com>
 ;; URL: https://github.com/mkcms/grep-context
-;; Package-Requires: ((emacs "24.4") (dash "2.12.0") (cl-lib "0.5.0"))
+;; Package-Requires: ((emacs "24.4"))
 ;; Version: 0.1.0
 ;; Keywords: convenience, search, grep, compile
 
@@ -51,7 +51,6 @@
 ;;; Code:
 
 (require 'compile)
-(require 'dash)
 (eval-when-compile
   (require 'cl-lib))
 
@@ -162,32 +161,33 @@ N defaults to 1."
     (error "Current buffer is not compilation buffer"))
 
   (or n (setq n 1))
-  (-let* (((file . line) (grep-context--match-location))
-	  (ctx (grep-context--at-match))
+  (pcase-let*
+      ((`(,file . ,line) (grep-context--match-location))
+       (ctx (grep-context--at-match))
 
-	  ;; File, line, context around previous/next match
-	  ((prev-file . prev-line) (ignore-errors
+       ;; File, line, context around previous/next match
+       (`(,prev-file . ,prev-line) (ignore-errors
 				     (grep-context--match-location -1)))
-	  ((next-file . next-line) (ignore-errors
+       (`(,next-file . ,next-line) (ignore-errors
 				     (grep-context--match-location 1)))
-	  ((_ . prev-ctx) (ignore-errors (grep-context--at-match -1)))
-	  ((next-ctx . _) (ignore-errors (grep-context--at-match 1)))
+       (`(,_ . ,prev-ctx) (ignore-errors (grep-context--at-match -1)))
+       (`(,next-ctx . ,_) (ignore-errors (grep-context--at-match 1)))
 
-	  ;; Number of lines that can be inserted before/after match at point
-	  (avail-before
-	   (min n (or (and (equal file prev-file) (< prev-line line)
-			   (- line 1 (car ctx) (+ prev-line prev-ctx)))
-		      n)))
-	  (avail-after
-	   (min n (or (and (equal file next-file) (< line next-line)
-			   (- next-line 1 next-ctx (+ line (cdr ctx))))
-		      n)))
+       ;; Number of lines that can be inserted before/after match at point
+       (avail-before
+	(min n (or (and (equal file prev-file) (< prev-line line)
+			(- line 1 (car ctx) (+ prev-line prev-ctx)))
+		   n)))
+       (avail-after
+	(min n (or (and (equal file next-file) (< line next-line)
+			(- next-line 1 next-ctx (+ line (cdr ctx))))
+		   n)))
 
-	  (format (or (cdr (assoc major-mode grep-context-line-format-alist))
-		      grep-context-default-format))
-	  (separator (cdr (assoc major-mode grep-context-separator-alist)))
-	  (buffer (current-buffer))
-	  (inhibit-read-only t))
+       (format (or (cdr (assoc major-mode grep-context-line-format-alist))
+		   grep-context-default-format))
+       (separator (cdr (assoc major-mode grep-context-separator-alist)))
+       (buffer (current-buffer))
+       (inhibit-read-only t))
 
     ;; Remove separator before and after this match
     (dolist (line-outside (list (1+ (cdr ctx)) (- (1+ (car ctx)))))
