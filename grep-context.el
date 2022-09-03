@@ -141,7 +141,7 @@ Return value is a cell (context-before . context-after) that can be modified."
     (or (get-text-property (point) 'grep-context)
 	(let ((cell (cons 0 0))
 	      (inhibit-read-only t))
-	  (put-text-property (point-at-bol) (point-at-eol) 'grep-context cell)
+	  (put-text-property (line-beginning-position) (line-end-position) 'grep-context cell)
 	  cell))))
 
 (defun grep-context--format-line (format file line-number line)
@@ -234,7 +234,7 @@ N defaults to 1."
 	  (forward-line (- (car ctx)))
 
 	  (while (and (>= (cl-decf avail-before) 0) (= (forward-line -1) 0))
-	    (let ((string (buffer-substring (point-at-bol) (point-at-eol))))
+	    (let ((string (buffer-substring (line-beginning-position) (line-end-position))))
 	      (with-current-buffer buffer
 		(forward-line (- (car ctx)))
 		(beginning-of-line)
@@ -249,7 +249,7 @@ N defaults to 1."
 	  (forward-line (cdr ctx))
 
 	  (while (and (>= (cl-decf avail-after) 0) (= (forward-line 1) 0))
-	    (let ((string (buffer-substring (point-at-bol) (point-at-eol))))
+	    (let ((string (buffer-substring (line-beginning-position) (line-end-position))))
 	      (with-current-buffer buffer
 		(save-excursion
 		  (forward-line (1+ (cdr ctx)))
@@ -280,7 +280,7 @@ N defaults to 1."
 
     (save-excursion
       (forward-line (1+ (cdr ctx)))
-      (compilation--ensure-parse (point-at-bol)))
+      (compilation--ensure-parse (line-beginning-position)))
 
     ;; Tell wgrep to reparse buffer.
     ;; TODO: Find a way to tell wgrep to reparse context around this match only
